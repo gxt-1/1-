@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>键盘练习系统 - Typing Trainer</title>
+<style>
+/* ============================================================
+   CSS 变量与全局样式
+   ============================================================ */
+:root {
+  --bg:        #f0f4f8;
+  --card:      #ffffff;
+  --primary:   #4a90d9;
+  --primary-h: #3a7bc8;
+  --success:   #4caf50;
+  --success-h: #43a047;
+  --warning:   #f39c12;
+  --danger:    #e74c3c;
+  --danger-h:  #d63031;
+  --purple:    #9b59b6;
+  --gray:      #95a5a6;
+  --gray-h:    #7f8c8d;
+  --text:      #2c3e50;
+  --text-l:    #636e72;
+  --border:    #dfe6e9;
+  --shadow:    0 2px 12px rgba(0,0,0,0.08);
+  --radius:    12px;
+  --font:      'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --mono:      'Cascadia Code', 'Fira Code', 'Consolas', 'Courier New', monospace;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+
+/* 主容器 */
+.app {
+  width: 100%;
+  max-width: 800px;
+  background: var(--card);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  min-height: 560px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 顶部栏 */
+.header {
+  background: linear-gradient(135deg, #2c3e50, #34495e);
+  color: #fff;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.header h1 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.header .user-badge {
+  font-size: 0.85rem;
+  background: rgba(255,255,255,0.15);
+  padding: 4px 14px;
+  border-radius: 20px;
+  cursor: default;
+}
+
+/* 内容区 */
+.content {
+  flex: 1;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 页面标题 */
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+/* ============================================================
+   表单组件
+   ============================================================ */
+.form-group {
+  width: 100%;
+  max-width: 360px;
+  margin-bottom: 18px;
+}
+.form-group label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-l);
+  margin-bottom: 5px;
+}
+.form-group input {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 1rem;
+  font-family: var(--mono);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s;
+  background: #fafbfc;
+}
+.form-group input:focus {
+  border-color: var(--primary);
+  background: #fff;
+}
+
+/* 按钮 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 22px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font);
+  min-width: 90px;
+  text-decoration: none;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.btn:active { transform: translateY(0); }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-h); }
+.btn-success { background: var(--success); color: #fff; }
+.btn-success:hover { background: var(--success-h); }
+.btn-danger  { background: var(--danger); color: #fff; }
+.btn-danger:hover  { background: var(--danger-h); }
+.btn-gray    { background: var(--gray); color: #fff; }
+.btn-gray:hover    { background: var(--gray-h); }
+.btn-purple  { background: var(--purple); color: #fff; }
+.btn-warning { background: var(--warning); color: #fff; }
+.btn-sm { padding: 6px 14px; font-size: 0.82rem; min-width: 60px; }
+.btn-lg { padding: 14px 32px; font-size: 1.1rem; }
+
+.btn-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+/* 消息提示 */
+.msg {
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 6px;
+  margin-top: 12px;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+.msg-error { color: #c0392b; background: #fdecea; }
+.msg-success { color: #27ae60; background: #e8f8f0; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+
+/* ============================================================
+   主菜单按钮
+   ============================================================ */
+.menu-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
+}
+.menu-btn {
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #fff;
+  text-align: center;
+  font-family: var(--font);
+}
+.menu-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+.menu-btn:active { transform: translateY(0); }
+.menu-btn.practice  { background: var(--primary); }
+.menu-btn.ranking   { background: var(--success); }
+.menu-btn.settings  { background: var(--warning); }
+.menu-btn.profile   { background: var(--purple); }
+.menu-btn.logout    { background: var(--danger); }
+
+/* ============================================================
+   排行榜表格
+   ============================================================ */
+.rank-table {
+  width: 100%;
+  max-width: 640px;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+}
+.rank-table th {
+  background: #f5f7fa;
+  color: var(--text-l);
+  font-weight: 700;
+  padding: 10px 8px;
+  text-align: center;
+  border-bottom: 2px solid var(--border);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.rank-table td {
+  padding: 10px 8px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+.rank-table tbody tr:hover { background: #f8fafc; }
+.rank-table .rank-1 { color: #f39c12; font-weight: 700; }
+.rank-table .rank-2 { color: #95a5a6; font-weight: 700; }
+.rank-table .rank-3 { color: #cd6133; font-weight: 700; }
+.rank-empty {
+  text-align: center;
+  color: var(--gray);
+  padding: 40px 0;
+  font-size: 1rem;
+}
+
+/* ============================================================
+   练习页面
+   ============================================================ */
+.practice-stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.stat-card {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 18px;
+  text-align: center;
+  min-width: 90px;
+}
+.stat-card .stat-val {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--primary);
+  font-family: var(--mono);
+}
+.stat-card .stat-lbl {
+  font-size: 0.75rem;
+  color: var(--text-l);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.stat-card.wpm .stat-val { color: var(--success); }
+.stat-card.acc .stat-val { color: var(--warning); }
+.stat-card.time .stat-val { color: var(--danger); }
+
+/* 进度条 */
+.progress-wrap {
+  width: 100%;
+  max-width: 640px;
+  margin-bottom: 16px;
+}
+.progress-bar {
+  width: 100%;
+  height: 12px;
+  background: #e9ecef;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), #6dd5fa);
+  border-radius: 6px;
+  transition: width 0.3s ease;
+}
+
+/* 目标文本显示区 */
+.typing-area {
+  width: 100%;
+  max-width: 700px;
+  background: #fafbfc;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 24px;
+  min-height: 100px;
+  margin-bottom: 16px;
+  line-height: 2.2;
+  font-family: var(--mono);
+  font-size: 1.2rem;
+  word-break: break-all;
+  user-select: none;
+}
+.typing-area .char {
+  display: inline;
+  transition: color 0.1s;
+}
+.char-correct  { color: #27ae60; }                /* 正确: 绿色 */
+.char-wrong    { color: #e74c3c; background: #fdecea; border-radius: 2px; } /* 错误: 红色 */
+.char-current  { color: var(--primary); border-bottom: 3px solid var(--primary); font-weight: 700; } /* 当前: 蓝色下划线 */
+.char-pending  { color: #b2bec3; }                /* 未输入: 灰色 */
+
+/* 键盘提示 */
+.key-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.key-hint-box {
+  width: 48px;
+  height: 48px;
+  background: #e8f0fe;
+  border: 2px solid var(--primary);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--primary);
+  font-family: var(--mono);
+  animation: keyPulse 1.5s ease-in-out infinite;
+}
+.key-hint-lbl {
+  font-size: 0.75rem;
+  color: var(--text-l);
+  margin-top: 4px;
+}
+@keyframes keyPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(74,144,217,0.4); }
+  50%      { box-shadow: 0 0 0 10px rgba(74,144,217,0); }
+}
+
+/* 隐藏输入 (用于移动端键盘) —— 必须保留非零尺寸否则浏览器拒绝聚焦 */
+#practiceInput {
+  position: fixed;
+  top: -100px;
+  left: 0;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+/* ============================================================
+   设置页面卡片
+   ============================================================ */
+.setting-card {
+  width: 100%;
+  max-width: 500px;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.setting-card .setting-info h3 {
+  font-size: 0.95rem;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.setting-card .setting-info p {
+  font-size: 0.82rem;
+  color: var(--text-l);
+}
+.setting-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.setting-val {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--primary);
+  min-width: 50px;
+  text-align: center;
+}
+
+/* ============================================================
+   个人资料
+   ============================================================ */
+.profile-card {
+  width: 100%;
+  max-width: 500px;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 14px;
+}
+.profile-card h3 {
+  font-size: 0.9rem;
+  color: var(--text-l);
+  margin-bottom: 8px;
+}
+.profile-card .profile-data {
+  font-size: 0.95rem;
+  color: var(--text);
+  line-height: 1.8;
+}
+
+/* ============================================================
+   结果弹窗
+   ============================================================ */
+.modal-overlay {
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.25s ease;
+}
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  max-width: 400px;
+  width: 90%;
+}
+.modal h2 { font-size: 1.4rem; margin-bottom: 16px; }
+.modal .result-grid {
+  display: flex; gap: 20px; justify-content: center; margin: 20px 0;
+}
+.modal .result-item .big { font-size: 2rem; font-weight: 700; color: var(--primary); }
+.modal .result-item .lbl { font-size: 0.8rem; color: var(--text-l); }
+
+/* ============================================================
+   响应式
+   ============================================================ */
+@media (max-width: 600px) {
+  .app { border-radius: 0; min-height: 100vh; }
+  .content { padding: 20px 14px; }
+  .page-title { font-size: 1.25rem; }
+  .typing-area { font-size: 1rem; padding: 14px; }
+  .practice-stats { gap: 8px; }
+  .stat-card { padding: 8px 12px; min-width: 70px; }
+  .stat-card .stat-val { font-size: 1.2rem; }
+  .rank-table { font-size: 0.78rem; }
+  .rank-table th, .rank-table td { padding: 6px 4px; }
+  .btn-lg { padding: 12px 24px; font-size: 1rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <!-- 顶部栏 -->
+  <header class="header">
+    <h1>⌨️ 键盘练习系统</h1>
+    <span class="user-badge" id="userBadge">未登录</span>
+  </header>
+
+  <!-- 内容区域 (JS 动态渲染) -->
+  <main class="content" id="content"></main>
+
+  <!-- 练习模式隐藏输入框 (用于移动端键盘弹出) -->
+  <input type="text" id="practiceInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+</div>
+
+<script>
+/* ============================================================
+ *  键盘练习系统 — 单文件 HTML 应用
+ *  原始 C++ 功能完整还原，使用 localStorage 持久化数据
+ * ============================================================ */
+
+// ===================== 常量 =====================
+const DIFF_EASY = 0, DIFF_NORMAL = 1, DIFF_HARD = 2;
+const DIFF_NAMES = ['简单', '普通', '困难'];
+
+// 词库（与原始 C++ 代码完全一致）
+const EASY_WORDS = [
+  'apple','book','cat','dog','egg','fish','game','hat','ice','jump',
+  'kite','lion','moon','nest','orange','pen','queen','red','sun','tree',
+  'up','van','water','xray','yellow','zoo','happy','good','nice','big'
+];
+const NORMAL_WORDS = [
+  'computer','program','keyboard','screen','mouse','printer','software',
+  'hardware','internet','network','server','client','database','memory',
+  'processor','graphic','display','window','system','application','function',
+  'variable','constant','string','number','boolean','object','array','class',
+  'method','public','private','static','return','import','package','module',
+  'library','framework','project','version','control','source','target',
+  'build','compile','debug','test','release'
+];
+const HARD_WORDS = [
+  'algorithm','encryption','optimization','synchronization','parallelism',
+  'concurrency','asynchronous','multithreading','virtualization',
+  'containerization','microservices','scalability','architecture',
+  'implementation','development','deployment','configuration',
+  'authentication','authorization','dependency','inheritance','polymorphism',
+  'encapsulation','abstraction','recursion','iteration','traversal',
+  'manipulation','transformation','visualization','notification',
+  'subscription','distribution','integration','coordination','evaluation',
+  'verification'
+];
+
+// localStorage 键名（对应原始代码的 .dat 文件）
+const KEY_USERS    = 'typing_users';
+const KEY_SCORES   = 'typing_scores';
+const KEY_SETTINGS = 'typing_settings';
+const KEY_CURRENT  = 'typing_currentUser';
+
+// ===================== 数据管理 =====================
+
+/** 从 localStorage 加载数据，若不存在则返回默认值 */
+function loadData(key, fallback) {
+  try { const d = localStorage.getItem(key); return d ? JSON.parse(d) : fallback; }
+  catch(e) { return fallback; }
+}
+function saveData(key, data) {
+  localStorage.setItem(key, JSON.stringify(data));
+}
+
+// ------ 用户管理（对应 UserManager 类） ------
+function loadUsers()    { return loadData(KEY_USERS, []); }
+function saveUsers(arr) { saveData(KEY_USERS, arr); }
+
+/** 注册用户。返回 { ok: true } 或 { ok: false, reason: '...' } */
+function registerUser(username, password, nickname) {
+  const users = loadUsers();
+  if (users.length >= 50) return { ok: false, reason: '用户数量已达上限 (50人)!' };
+  if (users.some(u => u.username === username)) return { ok: false, reason: '用户名已存在!' };
+  users.push({
+    id: users.length + 1,
+    username, password, nickname,
+    totalPractice: 0, bestSpeed: 0,
+    registerTime: Math.floor(Date.now() / 1000)
+  });
+  saveUsers(users);
+  return { ok: true };
+}
+
+/** 登录验证。返回用户对象或 null */
+function loginUser(username, password) {
+  const users = loadUsers();
+  const user = users.find(u => u.username === username && u.password === password);
+  if (user) { saveData(KEY_CURRENT, username); }
+  return user || null;
+}
+
+/** 获取当前登录用户的对象 */
+function getCurrentUser() {
+  const uname = loadData(KEY_CURRENT, '');
+  if (!uname) return null;
+  const users = loadUsers();
+  return users.find(u => u.username === uname) || null;
+}
+
+/** 更新用户资料（昵称、密码） */
+function updateProfile(newNickname, newPassword) {
+  const uname = loadData(KEY_CURRENT, '');
+  if (!uname) return false;
+  const users = loadUsers();
+  const idx = users.findIndex(u => u.username === uname);
+  if (idx < 0) return false;
+  if (newNickname) users[idx].nickname = newNickname;
+  if (newPassword) users[idx].password = newPassword;
+  saveUsers(users);
+  return true;
+}
+
+/** 更新用户练习统计 */
+function updateUserStats(wpm) {
+  const uname = loadData(KEY_CURRENT, '');
+  if (!uname) return;
+  const users = loadUsers();
+  const idx = users.findIndex(u => u.username === uname);
+  if (idx < 0) return;
+  users[idx].totalPractice++;
+  if (wpm > users[idx].bestSpeed) users[idx].bestSpeed = wpm;
+  saveUsers(users);
+}
+
+/** 登出 */
+function logoutUser() {
+  saveData(KEY_CURRENT, '');
+}
+
+// ------ 成绩管理（对应 ScoreManager 类） ------
+function loadScores()    { return loadData(KEY_SCORES, []); }
+function saveScores(arr) { saveData(KEY_SCORES, arr); }
+
+/** 添加一条成绩记录 */
+function addScore(username, wpm, accuracy, duration, difficulty) {
+  let scores = loadScores();
+  if (scores.length >= 200) scores.shift(); // 覆盖最旧记录（对应原始逻辑）
+  scores.push({
+    username, wpm, accuracy, duration,
+    scoreDate: Math.floor(Date.now() / 1000),
+    difficulty
+  });
+  saveScores(scores);
+}
+
+/** 获取排行榜：按 WPM 降序，返回前 topN 条 */
+function getRanking(topN) {
+  const scores = loadScores();
+  // 按 WPM 降序排序（对应原始冒泡排序逻辑）
+  const sorted = [...scores].sort((a, b) => b.wpm - a.wpm);
+  return sorted.slice(0, topN);
+}
+
+/** 获取某用户的个人最佳 WPM */
+function getPersonalBest(username) {
+  const scores = loadScores();
+  let best = 0;
+  scores.forEach(s => { if (s.username === username && s.wpm > best) best = s.wpm; });
+  return best;
+}
+
+// ------ 游戏设置（对应 GameSettings 类） ------
+const DEFAULT_SETTINGS = {
+  practiceTime: 60,     // 练习时长（秒）
+  difficulty: DIFF_NORMAL,
+  showKeyboard: true,   // 是否显示键盘提示
+};
+function loadSettings() { return { ...DEFAULT_SETTINGS, ...loadData(KEY_SETTINGS, {}) }; }
+function saveSettings(s) { saveData(KEY_SETTINGS, s); }
+
+/** 根据难度返回目标单词数量（对应 getWordCount） */
+function getWordCount(difficulty) {
+  if (difficulty === DIFF_EASY)  return 30;
+  if (difficulty === DIFF_HARD)  return 80;
+  return 50;
+}
+
+/** 根据难度随机生成目标文本（对应 KeyboardTrainer.generateText） */
+function generateText(difficulty) {
+  let pool;
+  if (difficulty === DIFF_EASY)  pool = EASY_WORDS;
+  else if (difficulty === DIFF_HARD) pool = HARD_WORDS;
+  else pool = NORMAL_WORDS;
+  const count = getWordCount(difficulty);
+  const words = [];
+  for (let i = 0; i < count; i++) {
+    words.push(pool[Math.floor(Math.random() * pool.length)]);
+  }
+  return words.join(' ');
+}
+
+// ===================== 应用状态 =====================
+const state = {
+  page: 'login',        // 当前页面: login | register | menu | practice | ranking | settings | profile
+  message: '',          // 提示消息文本
+  messageType: '',      // 'error' | 'success'
+  messageTimer: null,   // 消息自动消失的定时器
+  // 练习状态
+  targetText: '',
+  userInput: '',
+  inputLen: 0,
+  totalChars: 0,
+  correctChars: 0,
+  startTime: 0,
+  elapsedTime: 0,
+  isRunning: false,
+  practiceTimer: null,
+  // 表单输入缓存（对应原始 inputBuf1/2/3）
+  formField1: '',
+  formField2: '',
+  formField3: '',
+  formFocus: 1,         // 当前聚焦的输入框编号
+  settings: loadSettings(),
+};
+
+// ===================== DOM 引用 =====================
+const $content   = document.getElementById('content');
+const $badge     = document.getElementById('userBadge');
+const $practiceInput = document.getElementById('practiceInput');
+
+// ===================== 工具函数 =====================
+
+/** 显示提示消息，3 秒后自动消失 */
+function showMessage(text, type) {
+  clearTimeout(state.messageTimer);
+  state.message = text;
+  state.messageType = type;
+  render();
+  state.messageTimer = setTimeout(() => {
+    state.message = '';
+    state.messageType = '';
+    render();
+  }, 3000);
+}
+
+/** 刷新顶部用户状态 */
+function updateBadge() {
+  const user = getCurrentUser();
+  $badge.textContent = user ? `👤 ${user.username}` : '未登录';
+}
+
+/** 切换页面并重新渲染 */
+function goTo(page) {
+  state.page = page;
+  state.message = '';
+  state.messageType = '';
+  updateBadge();
+  render();
+}
+
+// ===================== 练习核心逻辑 =====================
+
+/** 开始练习（对应 KeyboardTrainer.generateText + 主循环初始化） */
+function startPractice() {
+  const s = state.settings;
+  state.targetText  = generateText(s.difficulty);
+  state.userInput   = '';
+  state.inputLen    = 0;
+  state.totalChars  = 0;
+  state.correctChars = 0;
+  state.startTime   = Date.now();
+  state.elapsedTime = 0;
+  state.isRunning   = true;
+
+  // 启动计时器（每 100ms 更新一次）
+  clearInterval(state.practiceTimer);
+  state.practiceTimer = setInterval(() => {
+    if (!state.isRunning) return;
+    state.elapsedTime = Math.floor((Date.now() - state.startTime) / 1000);
+    // 检查是否超时
+    if (state.elapsedTime >= s.practiceTime) {
+      endPractice();
+    }
+    renderPracticeStats();
+  }, 100);
+
+  // 切换到练习页面
+  state.page = 'practice';
+  render();
+
+  // 延迟聚焦隐藏输入框（render 完成后 DOM 才存在，用于移动端键盘弹出 + 桌面端辅助捕获）
+  setTimeout(() => {
+    $practiceInput.value = '';
+    $practiceInput.focus();
+  }, 50);
+}
+
+/** 处理单个按键输入（对应 KeyboardTrainer.processInput） */
+function processInput(key) {
+  if (!state.isRunning) return;
+
+  // 忽略回车
+  if (key === 'Enter') return;
+
+  // 退格键处理
+  if (key === 'Backspace') {
+    if (state.inputLen > 0) {
+      state.inputLen--;
+      state.userInput = state.userInput.slice(0, -1);
+    }
+    $practiceInput.value = state.userInput; // 同步隐藏输入框
+    renderPracticeText();
+    return;
+  }
+
+  // 忽略功能键、控制键（对应原始代码中 ch == 0 || ch == -32 的处理）
+  if (key.length !== 1) return;
+
+  // 已输入完毕则忽略
+  if (state.inputLen >= state.targetText.length) return;
+
+  // 记录输入
+  state.userInput += key;
+  state.inputLen++;
+  state.totalChars++;
+  if (key === state.targetText[state.inputLen - 1]) {
+    state.correctChars++;
+  }
+
+  $practiceInput.value = state.userInput; // 同步隐藏输入框
+  renderPracticeText();
+  renderPracticeStats();
+
+  // 检查是否已完成所有字符输入
+  if (state.inputLen >= state.targetText.length) {
+    endPractice();
+  }
+}
+
+/** 结束练习，计算成绩并保存（对应主循环中计时结束/完成输入的处理） */
+function endPractice() {
+  if (!state.isRunning) return;
+  state.isRunning = false;
+  clearInterval(state.practiceTimer);
+  state.elapsedTime = Math.floor((Date.now() - state.startTime) / 1000);
+
+  // 计算 WPM 和准确率（公式与原始 C++ 完全一致）
+  const et = state.elapsedTime || 1; // 避免除零
+  const wpm = Math.floor((state.correctChars / 5.0) * 60.0 / et);
+  const acc = state.totalChars > 0 ? Math.floor(state.correctChars * 100.0 / state.totalChars) : 0;
+
+  const user = getCurrentUser();
+  if (user) {
+    // 保存成绩（对应 scoreMgr.addScore）
+    addScore(user.username, wpm, acc, et, state.settings.difficulty);
+    // 更新用户练习统计（对应 userMgr 中 totalPractice++ 和 bestSpeed 更新）
+    updateUserStats(wpm);
+  }
+
+  // 显示结果弹窗
+  showResultModal(wpm, acc, et);
+}
+
+/** 强制结束练习（用户点击"结束练习"按钮） */
+function forceEndPractice() {
+  if (!state.isRunning) return;
+  state.isRunning = false;
+  clearInterval(state.practiceTimer);
+  state.elapsedTime = Math.floor((Date.now() - state.startTime) / 1000);
+
+  const et = state.elapsedTime || 1;
+  const wpm = Math.floor((state.correctChars / 5.0) * 60.0 / et);
+  const acc = state.totalChars > 0 ? Math.floor(state.correctChars * 100.0 / state.totalChars) : 0;
+
+  const user = getCurrentUser();
+  if (user) {
+    addScore(user.username, wpm, acc, et, state.settings.difficulty);
+    updateUserStats(wpm);
+  }
+  showResultModal(wpm, acc, et);
+}
+
+// ===================== 渲染函数 =====================
+
+/** 主渲染入口：根据 state.page 渲染对应页面 */
+function render() {
+  updateBadge();
+  switch (state.page) {
+    case 'login':    renderLogin(); break;
+    case 'register': renderRegister(); break;
+    case 'menu':     renderMenu(); break;
+    case 'practice': renderPractice(); break;
+    case 'ranking':  renderRanking(); break;
+    case 'settings': renderSettings(); break;
+    case 'profile':  renderProfile(); break;
+  }
+}
+
+/** 登录页面 */
+function renderLogin() {
+  $content.innerHTML = `
+    <div class="page-title">🔐 用户登录</div>
+    <div class="form-group">
+      <label for="loginUser">用户名</label>
+      <input type="text" id="loginUser" maxlength="30" value="${escHtml(state.formField1)}" placeholder="请输入用户名">
+    </div>
+    <div class="form-group">
+      <label for="loginPwd">密码</label>
+      <input type="password" id="loginPwd" maxlength="30" value="${escHtml(state.formField2)}" placeholder="请输入密码">
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btnLogin">登录</button>
+      <button class="btn btn-success" id="btnGoRegister">注册新账号</button>
+    </div>
+    ${state.message ? `<div class="msg msg-${state.messageType}">${escHtml(state.message)}</div>` : ''}
+  `;
+
+  // 绑定事件
+  document.getElementById('btnLogin').onclick = () => {
+    const username = document.getElementById('loginUser').value.trim();
+    const password = document.getElementById('loginPwd').value;
+    state.formField1 = username;
+    state.formField2 = password;
+    if (!username || !password) { showMessage('请输入用户名和密码!', 'error'); return; }
+    const user = loginUser(username, password);
+    if (user) {
+      state.formField1 = '';
+      state.formField2 = '';
+      showMessage('登录成功!', 'success');
+      setTimeout(() => goTo('menu'), 600);
+    } else {
+      showMessage('用户名或密码错误!', 'error');
+    }
+  };
+  document.getElementById('btnGoRegister').onclick = () => {
+    state.formField1 = '';
+    state.formField2 = '';
+    goTo('register');
+  };
+  // 回车键登录
+  const onKey = (e) => { if (e.key === 'Enter') document.getElementById('btnLogin').click(); };
+  document.getElementById('loginUser').addEventListener('keydown', onKey);
+  document.getElementById('loginPwd').addEventListener('keydown', onKey);
+  // 自动聚焦
+  document.getElementById('loginUser').focus();
+}
+
+/** 注册页面 */
+function renderRegister() {
+  $content.innerHTML = `
+    <div class="page-title">📝 新用户注册</div>
+    <div class="form-group">
+      <label for="regUser">用户名</label>
+      <input type="text" id="regUser" maxlength="30" value="${escHtml(state.formField1)}" placeholder="请输入用户名">
+    </div>
+    <div class="form-group">
+      <label for="regPwd">密码</label>
+      <input type="password" id="regPwd" maxlength="30" value="${escHtml(state.formField2)}" placeholder="请输入密码">
+    </div>
+    <div class="form-group">
+      <label for="regNick">昵称</label>
+      <input type="text" id="regNick" maxlength="30" value="${escHtml(state.formField3)}" placeholder="请输入昵称（可选）">
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btnRegister">确认注册</button>
+      <button class="btn btn-gray" id="btnBackToLogin">返回</button>
+    </div>
+    ${state.message ? `<div class="msg msg-${state.messageType}">${escHtml(state.message)}</div>` : ''}
+  `;
+
+  // 保存表单值
+  const persistForm = () => {
+    state.formField1 = document.getElementById('regUser').value;
+    state.formField2 = document.getElementById('regPwd').value;
+    state.formField3 = document.getElementById('regNick').value;
+  };
+
+  document.getElementById('btnRegister').onclick = () => {
+    persistForm();
+    const username = state.formField1.trim();
+    const password = state.formField2;
+    const nickname = state.formField3.trim();
+    if (!username || !password) { showMessage('用户名和密码不能为空!', 'error'); return; }
+    const r = registerUser(username, password, nickname);
+    if (r.ok) {
+      state.formField1 = ''; state.formField2 = ''; state.formField3 = '';
+      showMessage('注册成功! 请返回登录。', 'success');
+      setTimeout(() => goTo('login'), 1000);
+    } else {
+      showMessage(r.reason, 'error');
+    }
+  };
+  document.getElementById('btnBackToLogin').onclick = () => {
+    persistForm();
+    goTo('login');
+  };
+  document.getElementById('regUser').focus();
+}
+
+/** 主菜单页面 */
+function renderMenu() {
+  const user = getCurrentUser();
+  $content.innerHTML = `
+    <div class="page-title">📋 主菜单</div>
+    <p style="color:var(--text-l);margin-bottom:20px;">欢迎, <strong>${escHtml(user ? user.username : '')}</strong></p>
+    <div class="menu-grid">
+      <button class="menu-btn practice" id="btnPractice">🚀 开始练习</button>
+      <button class="menu-btn ranking"  id="btnRanking">🏆 成绩排名</button>
+      <button class="menu-btn settings" id="btnSettings">⚙️ 练习设置</button>
+      <button class="menu-btn profile"  id="btnProfile">👤 个人资料</button>
+      <button class="menu-btn logout"   id="btnLogout">🚪 退出登录</button>
+    </div>
+    ${state.message ? `<div class="msg msg-${state.messageType}" style="margin-top:16px;">${escHtml(state.message)}</div>` : ''}
+  `;
+
+  document.getElementById('btnPractice').onclick = () => startPractice();
+  document.getElementById('btnRanking').onclick  = () => goTo('ranking');
+  document.getElementById('btnSettings').onclick = () => goTo('settings');
+  document.getElementById('btnProfile').onclick  = () => goTo('profile');
+  document.getElementById('btnLogout').onclick   = () => { logoutUser(); goTo('login'); };
+}
+
+/** 练习页面渲染（首次完整渲染） */
+function renderPractice() {
+  const s = state.settings;
+  const et = state.elapsedTime;
+  const wpm = et > 0 ? Math.floor((state.correctChars / 5.0) * 60.0 / et) : 0;
+  const acc = state.totalChars > 0 ? Math.floor(state.correctChars * 100.0 / state.totalChars) : 0;
+  const progress = Math.min(100, Math.floor(et * 100.0 / s.practiceTime));
+  const remaining = Math.max(0, s.practiceTime - et);
+
+  $content.innerHTML = `
+    <div class="page-title">⌨️ 键盘练习中...</div>
+
+    <div class="practice-stats">
+      <div class="stat-card time">
+        <div class="stat-val" id="statTime">${remaining}</div>
+        <div class="stat-lbl">剩余秒数</div>
+      </div>
+      <div class="stat-card wpm">
+        <div class="stat-val" id="statWpm">${wpm}</div>
+        <div class="stat-lbl">WPM</div>
+      </div>
+      <div class="stat-card acc">
+        <div class="stat-val" id="statAcc">${acc}%</div>
+        <div class="stat-lbl">准确率</div>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:${progress}%"></div></div>
+    </div>
+
+    <div class="typing-area" id="typingArea"></div>
+
+    ${s.showKeyboard && state.inputLen < state.targetText.length ? `
+    <div class="key-hint">
+      <div class="key-hint-box">${escHtml(state.targetText[state.inputLen] || '')}</div>
+      <div class="key-hint-lbl">下一个按键提示</div>
+    </div>
+    ` : ''}
+
+    <button class="btn btn-danger btn-lg" id="btnEndPractice">结束练习</button>
+  `;
+
+  // 渲染逐字色彩的文本
+  renderPracticeText();
+
+  // 绑定结束按钮
+  document.getElementById('btnEndPractice').onclick = () => forceEndPractice();
+
+  // 键盘事件监听（练习模式专用）
+  setupPracticeKeyboard();
+}
+
+/** 渲染练习页面的逐字色彩显示（对应 drawTypingText） */
+function renderPracticeText() {
+  const area = document.getElementById('typingArea');
+  if (!area) return;
+  const target = state.targetText;
+  const input  = state.userInput;
+  let html = '';
+  for (let i = 0; i < target.length; i++) {
+    let cls = 'char';
+    if (i < input.length) {
+      // 已输入的字符：正确=绿色，错误=红色
+      cls += (input[i] === target[i]) ? ' char-correct' : ' char-wrong';
+    } else if (i === input.length) {
+      // 当前待输入字符：蓝色下划线高亮
+      cls += ' char-current';
+    } else {
+      // 尚未输入的字符：灰色
+      cls += ' char-pending';
+    }
+    // 空格显示为可见符号
+    const ch = target[i] === ' ' ? '&nbsp;' : escHtml(target[i]);
+    html += `<span class="${cls}">${ch}</span>`;
+  }
+  area.innerHTML = html;
+}
+
+/** 更新练习页面的统计数据（WPM、准确率、进度条、剩余时间） */
+function renderPracticeStats() {
+  const s = state.settings;
+  const et = state.elapsedTime;
+  const wpm = et > 0 ? Math.floor((state.correctChars / 5.0) * 60.0 / et) : 0;
+  const acc = state.totalChars > 0 ? Math.floor(state.correctChars * 100.0 / state.totalChars) : 0;
+  const progress = Math.min(100, Math.floor(et * 100.0 / s.practiceTime));
+  const remaining = Math.max(0, s.practiceTime - et);
+
+  const elWpm = document.getElementById('statWpm');
+  const elAcc = document.getElementById('statAcc');
+  const elTime = document.getElementById('statTime');
+  const elProg = document.getElementById('progressFill');
+  if (elWpm) elWpm.textContent = wpm;
+  if (elAcc) elAcc.textContent = acc + '%';
+  if (elTime) elTime.textContent = remaining;
+  if (elProg) elProg.style.width = progress + '%';
+}
+
+/** 设置练习模式的键盘事件监听 */
+let _practiceKeyHandler = null;
+function setupPracticeKeyboard() {
+  // 移除旧监听器
+  if (_practiceKeyHandler) {
+    document.removeEventListener('keydown', _practiceKeyHandler);
+  }
+  _practiceKeyHandler = (e) => {
+    // 如果焦点在"结束练习"按钮上，不拦截（允许 Tab 导航等）
+    if (e.target.tagName === 'BUTTON') return;
+
+    // ESC 键退出练习（对应原始代码 ch == 27 的处理）
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      forceEndPractice();
+      return;
+    }
+
+    // 处理所有打字相关按键
+    if (e.key === 'Backspace' || e.key === ' ' || e.key.length === 1) {
+      e.preventDefault();
+      processInput(e.key);
+    }
+  };
+  document.addEventListener('keydown', _practiceKeyHandler);
+
+  // 移动端：隐藏输入框的 input 事件
+  $practiceInput.oninput = () => {
+    const val = $practiceInput.value;
+    // 对比新旧值来处理输入
+    if (val.length > state.userInput.length) {
+      // 新增字符
+      const newChar = val[val.length - 1];
+      processInput(newChar);
+    } else if (val.length < state.userInput.length) {
+      // 删除字符（退格）
+      processInput('Backspace');
+    }
+  };
+  $practiceInput.focus();
+}
+
+/** 移除练习键盘监听 */
+function teardownPracticeKeyboard() {
+  if (_practiceKeyHandler) {
+    document.removeEventListener('keydown', _practiceKeyHandler);
+    _practiceKeyHandler = null;
+  }
+  $practiceInput.oninput = null;
+  $practiceInput.value = '';
+}
+
+/** 显示练习结果弹窗 */
+function showResultModal(wpm, acc, et) {
+  teardownPracticeKeyboard();
+  clearInterval(state.practiceTimer);
+
+  const s = state.settings;
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <h2>🎉 练习完成!</h2>
+      <div class="result-grid">
+        <div class="result-item"><div class="big">${wpm}</div><div class="lbl">WPM 速度</div></div>
+        <div class="result-item"><div class="big">${acc}%</div><div class="lbl">准确率</div></div>
+        <div class="result-item"><div class="big">${et}s</div><div class="lbl">用时</div></div>
+      </div>
+      <p style="color:var(--text-l);margin-bottom:16px;">难度: ${DIFF_NAMES[s.difficulty]} | 目标时长: ${s.practiceTime}秒</p>
+      <button class="btn btn-primary btn-lg" id="btnResultOk">返回主菜单</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  overlay.querySelector('#btnResultOk').onclick = () => {
+    overlay.remove();
+    goTo('menu');
+  };
+  overlay.onclick = (e) => { if (e.target === overlay) { overlay.remove(); goTo('menu'); } };
+}
+
+/** 排行榜页面 */
+function renderRanking() {
+  const top10 = getRanking(10);
+  let rows = '';
+  if (top10.length === 0) {
+    rows = `<tr><td colspan="5" class="rank-empty">暂无成绩记录，快去练习吧！</td></tr>`;
+  } else {
+    top10.forEach((r, i) => {
+      const rankCls = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
+      rows += `
+        <tr>
+          <td class="${rankCls}"><strong>${i + 1}</strong></td>
+          <td>${escHtml(r.username)}</td>
+          <td><strong>${r.wpm}</strong></td>
+          <td>${r.accuracy}%</td>
+          <td>${DIFF_NAMES[r.difficulty] || '普通'}</td>
+        </tr>`;
+    });
+  }
+
+  $content.innerHTML = `
+    <div class="page-title">🏆 成绩排行榜 (Top 10)</div>
+    <div style="width:100%;overflow-x:auto;">
+      <table class="rank-table">
+        <thead>
+          <tr><th>排名</th><th>用户名</th><th>WPM</th><th>准确率</th><th>难度</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <button class="btn btn-gray btn-lg" id="btnRankBack">返回主菜单</button>
+  `;
+  document.getElementById('btnRankBack').onclick = () => goTo('menu');
+}
+
+/** 设置页面 */
+function renderSettings() {
+  const s = state.settings;
+  $content.innerHTML = `
+    <div class="page-title">⚙️ 练习设置</div>
+
+    <div class="setting-card">
+      <div class="setting-info">
+        <h3>练习时长</h3>
+        <p>每次练习的时间限制（10~300秒）</p>
+      </div>
+      <div class="setting-actions">
+        <button class="btn btn-sm btn-danger" id="btnTimeMinus">−</button>
+        <span class="setting-val">${s.practiceTime}秒</span>
+        <button class="btn btn-sm btn-primary" id="btnTimePlus">+</button>
+      </div>
+    </div>
+
+    <div class="setting-card">
+      <div class="setting-info">
+        <h3>难度级别</h3>
+        <p>影响练习单词的复杂度与数量</p>
+      </div>
+      <div class="setting-actions">
+        <button class="btn btn-sm btn-warning" id="btnDiffToggle">切换难度</button>
+        <span class="setting-val" style="font-size:0.95rem;">${DIFF_NAMES[s.difficulty]} (${getWordCount(s.difficulty)}词)</span>
+      </div>
+    </div>
+
+    <div class="setting-card">
+      <div class="setting-info">
+        <h3>键盘提示</h3>
+        <p>练习时显示下一个待按键提示</p>
+      </div>
+      <div class="setting-actions">
+        <button class="btn btn-sm ${s.showKeyboard ? 'btn-success' : 'btn-gray'}" id="btnKeyToggle">
+          ${s.showKeyboard ? '开启' : '关闭'}
+        </button>
+      </div>
+    </div>
+
+    <button class="btn btn-success btn-lg" id="btnSaveSettings">💾 保存并返回</button>
+  `;
+
+  // 时长调节（步长 10 秒，范围 10~300，对应原始逻辑）
+  document.getElementById('btnTimePlus').onclick = () => {
+    if (state.settings.practiceTime < 300) state.settings.practiceTime += 10;
+    renderSettings();
+  };
+  document.getElementById('btnTimeMinus').onclick = () => {
+    if (state.settings.practiceTime > 10) state.settings.practiceTime -= 10;
+    renderSettings();
+  };
+  // 难度切换（循环：easy → normal → hard → easy，对应原始 difficulty = (difficulty+1)%3）
+  document.getElementById('btnDiffToggle').onclick = () => {
+    state.settings.difficulty = (state.settings.difficulty + 1) % 3;
+    renderSettings();
+  };
+  // 键盘提示开关
+  document.getElementById('btnKeyToggle').onclick = () => {
+    state.settings.showKeyboard = !state.settings.showKeyboard;
+    renderSettings();
+  };
+  // 保存设置（对应 settings.saveSettings()）
+  document.getElementById('btnSaveSettings').onclick = () => {
+    saveSettings(state.settings);
+    goTo('menu');
+  };
+}
+
+/** 个人资料页面 */
+function renderProfile() {
+  const user = getCurrentUser();
+  if (!user) { goTo('login'); return; }
+  const best = getPersonalBest(user.username);
+
+  $content.innerHTML = `
+    <div class="page-title">👤 个人资料管理</div>
+
+    <div class="profile-card">
+      <h3>基本信息</h3>
+      <div class="profile-data">用户名: <strong>${escHtml(user.username)}</strong></div>
+    </div>
+
+    <div class="profile-card">
+      <h3>详细数据</h3>
+      <div class="profile-data">
+        昵称: <strong>${escHtml(user.nickname || '未设置')}</strong><br>
+        总练习次数: <strong>${user.totalPractice}</strong><br>
+        最高速度: <strong>${user.bestSpeed} WPM</strong><br>
+        个人最佳: <strong>${best} WPM</strong>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="newNick">新昵称</label>
+      <input type="text" id="newNick" maxlength="30" value="${escHtml(state.formField1)}" placeholder="留空则不修改">
+    </div>
+    <div class="form-group">
+      <label for="newPwd">新密码</label>
+      <input type="password" id="newPwd" maxlength="30" value="${escHtml(state.formField2)}" placeholder="留空则不修改">
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btnSaveProfile">💾 保存修改</button>
+      <button class="btn btn-gray" id="btnProfileBack">返回</button>
+    </div>
+    ${state.message ? `<div class="msg msg-${state.messageType}">${escHtml(state.message)}</div>` : ''}
+  `;
+
+  // 保存表单值
+  const persist = () => {
+    state.formField1 = document.getElementById('newNick').value;
+    state.formField2 = document.getElementById('newPwd').value;
+  };
+
+  document.getElementById('btnSaveProfile').onclick = () => {
+    persist();
+    const nick = state.formField1.trim();
+    const pwd  = state.formField2;
+    if (!nick && !pwd) { showMessage('请至少填写一项修改内容!', 'error'); return; }
+    if (updateProfile(nick || undefined, pwd || undefined)) {
+      state.formField1 = ''; state.formField2 = '';
+      showMessage('资料修改成功!', 'success');
+      setTimeout(() => renderProfile(), 800);
+    } else {
+      showMessage('修改失败，请重试!', 'error');
+    }
+  };
+  document.getElementById('btnProfileBack').onclick = () => {
+    persist();
+    goTo('menu');
+  };
+}
+
+/** HTML 转义工具函数 */
+function escHtml(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ===================== 初始化 =====================
+function init() {
+  state.settings = loadSettings();
+  // 检查是否有已登录用户
+  const currentUser = loadData(KEY_CURRENT, '');
+  if (currentUser && loadUsers().some(u => u.username === currentUser)) {
+    state.page = 'menu';
+  } else {
+    state.page = 'login';
+    saveData(KEY_CURRENT, '');
+  }
+  updateBadge();
+  render();
+}
+
+// 页面离开前清理
+window.addEventListener('beforeunload', () => {
+  teardownPracticeKeyboard();
+  clearInterval(state.practiceTimer);
+});
+
+// 启动应用
+init();
+</script>
+</body>
+</html>
